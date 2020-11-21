@@ -135,6 +135,68 @@ void RgbPanel::PutChar(char nChar, uint8_t nRed, uint8_t nGreen, uint8_t nBlue) 
 	}
 }
 
+
+
+/**
+ * Text
+ */
+void RgbPanel::DrawChar(char nChar, uint8_t nX, uint8_t nY, rgbpanel::TFontID tFont, uint8_t nRed, uint8_t nGreen, uint8_t nBlue) {
+
+	uint32_t font_size = 0;
+	uint32_t font_width = 0;
+	uint32_t font_height = 8;
+	uint32_t font_space = 0;
+
+	if (tFont == rgbpanel::TFontID::FONT_8x8){
+		font_size = cp437_font_size();
+		font_width = FONT_CP437_CHAR_W;
+	} else if (tFont == rgbpanel::TFontID::FONT_5x8) {
+		font_size = font_5x8_size();
+		font_width = FONT_5x8_CHAR_W;
+		font_space = 1;		
+	}
+
+	if (__builtin_expect((static_cast<uint32_t>(nChar) >= font_size), 0)) {
+		nChar = ' ';
+	}
+
+	auto nStartColumn = nX;// m_LineStartX + (m_nPosition * (font_width + font_space));
+	auto nRow = nY; // m_nLine * font_height; //* m_nMaxPosition;
+	//const auto nColonIndex = m_nPosition + nRow;
+	//const bool bShowColon = (m_ptColons[nColonIndex].nBits != 0);
+
+	for (uint32_t i = 0; i < font_height; i++) {
+		uint32_t nWidth = font_space;
+
+		for (uint32_t nColumn = nStartColumn; nColumn < ((font_width) + nStartColumn); nColumn++) {
+			
+			if (nColumn > m_nColumns) 
+				continue;
+
+			uint8_t nByte = 0;
+			if (tFont == rgbpanel::TFontID::FONT_8x8){
+				nByte = cp437_font[static_cast<int>(nChar)][nWidth++] >> i;
+			} else if (tFont == rgbpanel::TFontID::FONT_5x8) {
+				nByte = font_5x8[static_cast<int>(nChar)-127][(nWidth++)] >> i;																					
+			}
+			 
+			if ((nByte & 0x1) != 0) {
+				SetPixel(nColumn, nRow, nRed, nGreen, nBlue);
+			} else {
+				SetPixel(nColumn, nRow, 0, 0, 0);
+			}
+
+		}
+
+		nRow++;
+			if (nRow > m_nRows) 
+				return;
+	}
+
+}
+
+
+
 void RgbPanel::PutString(const char *pString, uint8_t nRed, uint8_t nGreen, uint8_t nBlue) {
 	char nChar;
 
@@ -213,25 +275,7 @@ void RgbPanel::SetFont(uint8_t nLine, rgbpanel::TFontID font_id) {
 		return;
 	}	
 	m_LineFont[nLine] = font_id;	
-
-	// TODO: Optimize away, they are all currently 8 high,  only width varies. 
-	switch (m_LineFont[nLine-1])
-		{
-		case rgbpanel::TFontID::FONT_8x8:
-			m_nMaxPosition = m_nColumns / FONT_CP437_CHAR_W;
-			m_nMaxLine = m_nRows / FONT_CP437_CHAR_H;		
-			break;
-		
-		case rgbpanel::TFontID::FONT_5x8:
-			m_nMaxPosition = m_nColumns / FONT_5x8_CHAR_W;
-			m_nMaxLine = m_nRows / FONT_5x8_CHAR_H;
-			break;
-		
-		default:
-			m_nMaxPosition = m_nColumns / FONT_CP437_CHAR_W;
-			m_nMaxLine = m_nRows / FONT_CP437_CHAR_H;
-			break;
-		}	
+	
 }
 
 /**

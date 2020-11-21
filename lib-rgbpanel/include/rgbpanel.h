@@ -61,6 +61,7 @@ public:
 
 	// Text
 	void PutChar(char nChar, uint8_t nRed, uint8_t nGreen, uint8_t nBlue);
+	void DrawChar(char nChar, uint8_t nX, uint8_t nY, rgbpanel::TFontID tFont, uint8_t nRed, uint8_t nGreen, uint8_t nBlue);
 	void PutString(const char *pString, uint8_t nRed, uint8_t nGreen, uint8_t nBlue);
 	void Text(const char *pText, uint8_t nLength, uint8_t nRed, uint8_t nGreen, uint8_t nBlue);
 	void TextLine(uint8_t nLine, const char *pText, uint8_t nLength, uint8_t nRed, uint8_t nGreen, uint8_t nBlue);
@@ -107,7 +108,8 @@ private:
 	uint32_t m_nMaxLine;
 	uint32_t m_nPosition{0};
 	rgbpanel::TFontID m_LineFont[4];
-	uint32_t m_LineLength[4];
+	uint8_t m_LineStartX[4] = {0}; // offsets text line X
+
 
 	uint32_t m_nLine{0};
 	struct TColon {

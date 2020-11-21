@@ -99,27 +99,42 @@ void LtcDisplayRgbPanel::Show(const char *pTimecode, struct TLtcDisplayRgbColour
 		// TODO: optimize strlen() away
 		m_pRgbPanel->TextLine(1 + i, m_Line[i], strlen(m_Line[i]), m_LineColours[i].nRed, m_LineColours[i].nGreen, m_LineColours[i].nBlue);
 	}
-		
+
+	constexpr char cSpin[4] = {'\\','|','/','-'};
+    static uint8_t nSpinPos = 0;
+
+	m_pRgbPanel->DrawChar(cSpin[nSpinPos++],1,8,rgbpanel::TFontID::FONT_5x8,255,255,0);
+	if (nSpinPos == 4) nSpinPos = 0;
+
+
+    static uint8_t nFontPos = 0;
+	static uint8_t nTmrCnt = 0;
+
+	nTmrCnt++;
+	if (nTmrCnt > 15) {  // frames
+		nTmrCnt = 0;		
+		nFontPos++;
+	}
+	m_pRgbPanel->DrawChar(nFontPos,56,24,rgbpanel::TFontID::FONT_5x8,0,127,127);		
+
 	m_pRgbPanel->SetColonsOff();
 	m_pRgbPanel->SetColon(':', 1, 0, tColoursColons.nRed, tColoursColons.nGreen, tColoursColons.nBlue);
 	m_pRgbPanel->SetColon(':', 3, 0, tColoursColons.nRed, tColoursColons.nGreen, tColoursColons.nBlue);
 	m_pRgbPanel->SetColon('.', 5, 0, tColoursColons.nRed, tColoursColons.nGreen, tColoursColons.nBlue);
 
-	// m_pRgbPanel->SetColon(':', 2, 1, tColoursColons.nRed, tColoursColons.nGreen, tColoursColons.nBlue);
-	// m_pRgbPanel->SetColon(':', 4, 1, tColoursColons.nRed, tColoursColons.nGreen, tColoursColons.nBlue);
-	// m_pRgbPanel->SetColon('.', 6, 1, tColoursColons.nRed, tColoursColons.nGreen, tColoursColons.nBlue);
-
 	m_pRgbPanel->Show();
 }
 
 void LtcDisplayRgbPanel::ShowStopTime(const char *pStopTime, struct TLtcDisplayRgbColours &tColours) {
-	const char cLine[11] = {' ', '-', pStopTime[0], pStopTime[1], pStopTime[3], pStopTime[4], pStopTime[6], pStopTime[7], pStopTime[9], pStopTime[10],' '};
+	const char cLine[11] = {' ',' ', '-', pStopTime[0], pStopTime[1], pStopTime[3], pStopTime[4], pStopTime[6], pStopTime[7], pStopTime[9], pStopTime[10]};
 	memcpy(m_Line[1], cLine, 11);
 	
 	m_pRgbPanel->SetFont(1, rgbpanel::TFontID::FONT_5x8);
-	m_LineColours[1].nRed = tColours.nRed;
-	m_LineColours[1].nGreen = tColours.nGreen;
-	m_LineColours[1].nBlue = tColours.nBlue;
+	m_LineColours[1].nRed = 0x3F;//tColours.nRed;  // FIXME:  Rate colour
+	m_LineColours[1].nGreen = 0x00;//tColours.nGreen;
+	m_LineColours[1].nBlue = tColours.nBlue; 
+
+	
 }
 
 void LtcDisplayRgbPanel::ShowSysTime(const char *pSystemTime, struct TLtcDisplayRgbColours &tColours, struct TLtcDisplayRgbColours &tColoursColons) {
